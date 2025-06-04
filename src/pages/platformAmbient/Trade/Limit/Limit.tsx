@@ -102,8 +102,9 @@ export default function Limit() {
         updateTransactionHash,
         pendingTransactions,
     } = useContext(ReceiptContext);
-    const { mintSlippage, dexBalLimit, bypassConfirmLimit, fastLaneProtection } =
-        useContext(UserPreferenceContext);
+    const { mintSlippage, dexBalLimit, bypassConfirmLimit } = useContext(
+        UserPreferenceContext,
+    );
     const { basePrice, quotePrice } = poolData;
 
     const [isOpen, openModal, closeModal] = useModal();
@@ -965,7 +966,6 @@ export default function Limit() {
                 <TradeModuleHeader
                     slippage={mintSlippage}
                     bypassConfirm={bypassConfirmLimit}
-                    fastLaneProtection={fastLaneProtection}
                     settingsTitle='Limit Order'
                 />
             }

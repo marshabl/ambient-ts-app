@@ -1,6 +1,4 @@
 import { useContext, useState } from 'react';
-import { Contract, ethers } from 'ethers';
-import { ERC20_ABI } from '@crocswap-libs/sdk';
 import { CrocEnvContext } from '../../contexts/CrocEnvContext';
 
 import { waitForTransaction } from '../../ambient-utils/dataLayer';
@@ -38,25 +36,11 @@ export function useApprove() {
         tokenSymbol: string,
         cb?: (b: boolean) => void,
         tokenQuantity?: bigint,
-        spender?: string,
     ) => {
         if (!crocEnv) return;
         try {
             setIsApprovalPending(true);
-            let tx;
-            if (spender) {
-                const token = new Contract(
-                    tokenAddress,
-                    ERC20_ABI,
-                    crocEnv.signer,
-                );
-                tx = await token.approve(
-                    spender,
-                    tokenQuantity ?? ethers.MaxUint256,
-                );
-            } else {
-                tx = await crocEnv.token(tokenAddress).approve(tokenQuantity);
-            }
+            const tx = await crocEnv.token(tokenAddress).approve(tokenQuantity);
             if (tx) addPendingTx(tx?.hash);
             if (tx?.hash)
                 addTransactionByType({

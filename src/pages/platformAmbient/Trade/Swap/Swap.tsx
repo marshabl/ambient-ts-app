@@ -1,7 +1,6 @@
 import {
     bigIntToFloat,
     CrocImpact,
-    CrocEnv,
     fromDisplayQty,
     toDisplayQty,
 } from '@crocswap-libs/sdk';
@@ -48,11 +47,6 @@ import {
     SWAP_BUFFER_MULTIPLIER_L2,
     SWAP_BUFFER_MULTIPLIER_MAINNET,
     ZERO_ADDRESS,
-    ATLAS_ROUTER,
-    ATLAS_AUCTIONEER_ENDPOINT,
-    ATLAS_REFUND_PERCENT,
-    ATLAS_REFUND_RECIPIENT,
-    ATLAS_AUCTIONEER_ADDRESS,
 } from '../../../../ambient-utils/constants';
 import { MAINNET_TOKENS } from '../../../../ambient-utils/constants/networks/ethereumMainnet';
 import { useApprove } from '../../../../App/functions/approve';
@@ -89,8 +83,9 @@ function Swap(props: propsIF) {
 
     const { tokenAAllowance, tokenABalance, tokenADexBalance } =
         useContext(TradeTokenContext);
-    const { swapSlippage, dexBalSwap, bypassConfirmSwap, fastLaneProtection } =
-        useContext(UserPreferenceContext);
+    const { swapSlippage, dexBalSwap, bypassConfirmSwap } = useContext(
+        UserPreferenceContext,
+    );
     const {
         addPendingTx,
         addReceipt,
@@ -596,58 +591,6 @@ function Swap(props: propsIF) {
         setNewSwapTransactionHash('');
     };
 
-    async function performFastLaneSwap(params: {
-        crocEnv: CrocEnv;
-        isQtySell: boolean;
-        qty: string;
-        buyTokenAddress: string;
-        sellTokenAddress: string;
-        slippageTolerancePercentage: number;
-        isWithdrawFromDexChecked?: boolean;
-        isSaveAsDexSurplusChecked?: boolean;
-    }) {
-        const { crocEnv } = params;
-
-        const payload = {
-            jsonrpc: '2.0',
-            method: 'atlas_sendUnsignedTransaction',
-            params: [
-                {
-                    transaction: {
-                        chainId: parseInt(chainId),
-                        from: userAddress,
-                        to: ATLAS_AUCTIONEER_ADDRESS,
-                        value: '0x0',
-                        data: '0x',
-                        maxFeePerGas: '0x2E90EDD000',
-                    },
-                    refundRecipient: ATLAS_REFUND_RECIPIENT,
-                    refundPercent: ATLAS_REFUND_PERCENT,
-                    bidTokenIsOutputToken: true,
-                },
-            ],
-            id: 1,
-        };
-
-        const response = await fetch(ATLAS_AUCTIONEER_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        });
-        const result = await response.json();
-        if (result && result.result) {
-            const txResp = await crocEnv.signer?.sendTransaction({
-                to: result.result.to,
-                value: BigInt(result.result.value),
-                gas: BigInt(result.result.gas),
-                maxFeePerGas: BigInt(result.result.maxFeePerGas),
-                data: result.result.data,
-            });
-            return txResp;
-        }
-        return undefined;
-    }
-
     async function initiateSwap() {
         resetConfirmation();
 
@@ -665,27 +608,16 @@ function Swap(props: propsIF) {
             const sellTokenAddress = tokenA.address;
             const buyTokenAddress = tokenB.address;
 
-            tx = await (fastLaneProtection.isEnabled
-                ? performFastLaneSwap({
-                      crocEnv,
-                      isQtySell,
-                      qty,
-                      buyTokenAddress,
-                      sellTokenAddress,
-                      slippageTolerancePercentage,
-                      isWithdrawFromDexChecked,
-                      isSaveAsDexSurplusChecked,
-                  })
-                : performSwap({
-                      crocEnv,
-                      isQtySell,
-                      qty,
-                      buyTokenAddress,
-                      sellTokenAddress,
-                      slippageTolerancePercentage,
-                      isWithdrawFromDexChecked,
-                      isSaveAsDexSurplusChecked,
-                  }));
+            tx = await performSwap({
+                crocEnv,
+                isQtySell,
+                qty,
+                buyTokenAddress,
+                sellTokenAddress,
+                slippageTolerancePercentage,
+                isWithdrawFromDexChecked,
+                isSaveAsDexSurplusChecked,
+            });
             activeTxHash.current = tx?.hash;
             setNewSwapTransactionHash(tx?.hash);
             addPendingTx(tx?.hash);
@@ -898,7 +830,6 @@ function Swap(props: propsIF) {
                     slippage={swapSlippage}
                     dexBalSwap={dexBalSwap}
                     bypassConfirm={bypassConfirmSwap}
-                    fastLaneProtection={fastLaneProtection}
                     settingsTitle='Swap'
                     isSwapPage={!isOnTradeRoute}
                 />
@@ -1047,9 +978,12 @@ function Swap(props: propsIF) {
                                                 101n) /
                                             100n
                                       : ethers.MaxUint256,
-                                fastLaneProtection.isEnabled
-                                    ? ATLAS_ROUTER
-                                    : undefined,
+                                //   tokenABalance
+                                //   ? fromDisplayQty(
+                                //         tokenABalance,
+                                //         tokenA.decimals,
+                                //     )
+                                //   : undefined,
                             );
                         }}
                         flat

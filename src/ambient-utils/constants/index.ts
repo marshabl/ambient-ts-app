@@ -184,17 +184,3 @@ export const SHOW_TUTOS_DEFAULT =
 // using for disabling all tutorials and to hide help button on ui
 export const DISABLE_ALL_TUTOS =
     import.meta.env.VITE_DISABLE_ALL_TUTOS || false;
-
-export const ATLAS_ROUTER = '0x9958Ab9f64EF51194C5378a336D2A0b0A620D31c';
-export const ATLAS_AUCTIONEER_ENDPOINT =
-    import.meta.env.VITE_ATLAS_AUCTIONEER_ENDPOINT || 'http://localhost:8080';
-export const ATLAS_AUCTIONEER_ADDRESS =
-    import.meta.env.VITE_ATLAS_AUCTIONEER_ADDRESS ||
-    '0x48E8f6569c6EF0DB2A70E157d4E9f66cb27b3409';
-export const ATLAS_REFUND_RECIPIENT =
-    import.meta.env.VITE_ATLAS_REFUND_RECIPIENT ||
-    '0x6a8f4242aD566e93db888D6bE2164F0453A91dE4';
-export const ATLAS_REFUND_PERCENT =
-    import.meta.env.VITE_ATLAS_REFUND_PERCENT
-        ? parseInt(import.meta.env.VITE_ATLAS_REFUND_PERCENT)
-        : 25;
